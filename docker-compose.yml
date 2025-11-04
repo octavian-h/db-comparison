@@ -1,0 +1,30 @@
+services:
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: benchmark_db
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    volumes:
+      - ./etc/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+  mysqldb:
+    image: mysql:latest
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: benchmark_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+
+  echo-server:
+    image: mendhak/http-https-echo:latest
+    ports:
+      - "8888:8080"
+      - "9999:8443"

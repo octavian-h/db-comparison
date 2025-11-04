@@ -1,0 +1,4 @@
+{
+  "name": "#{authorName}",
+  "email": "#{authorName}@asd.com"
+}
