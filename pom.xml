@@ -11,6 +11,8 @@
 
     <modules>
         <module>common</module>
+        <module>common-reactive</module>
+        <module>common-sync</module>
         <module>performance-tester</module>
         <module>reactive-mongodb</module>
         <module>reactive-mysql</module>

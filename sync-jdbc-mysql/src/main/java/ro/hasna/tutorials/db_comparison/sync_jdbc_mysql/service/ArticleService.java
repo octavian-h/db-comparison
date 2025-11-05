@@ -1,88 +1,61 @@
 package ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ro.hasna.tutorials.db_comparison.dto.ArticleResponse;
+import ro.hasna.tutorials.db_comparison.dto.AuthorResponse;
 import ro.hasna.tutorials.db_comparison.dto.CreateArticleRequest;
+import ro.hasna.tutorials.db_comparison.dto.CreateAuthorRequest;
 import ro.hasna.tutorials.db_comparison.dto.EchoRequest;
 import ro.hasna.tutorials.db_comparison.dto.EchoResponse;
 import ro.hasna.tutorials.db_comparison.exception.ArticleNotFoundException;
-import ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.client.EchoClient;
+import ro.hasna.tutorials.db_comparison.sync.client.EchoClient;
+import ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.convertor.ArticleConvertor;
 import ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.domain.Article;
-import ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.domain.Author;
 import ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.repository.ArticleRepository;
-import ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.repository.AuthorRepository;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
-    private final AuthorRepository authorRepository;
+    private final AuthorService authorService;
     private final EchoClient echoClient;
 
-    private static ArticleResponse buildArticleResponse(Article article) {
-        Author author = article.getAuthor();
-        return ArticleResponse.builder()
-                .id(Optional.ofNullable(article.getId())
-                        .map(Objects::toString)
-                        .orElse(null))
-                .authorName(Optional.ofNullable(author).map(Author::getName).orElse(null))
-                .authorEmail(Optional.ofNullable(author).map(Author::getEmail).orElse(null))
-                .content(article.getContent())
-                .creationDate(article.getCreationDate())
-                .likes(Optional.ofNullable(article.getLikes())
-                        .orElse(0))
-                .build();
-    }
-
-    public List<ArticleResponse> findArticles(String authorName, PageRequest pageRequest) {
-        if (authorName == null) {
-            return articleRepository.findAllBy(pageRequest)
-                    .stream()
-                    .map(ArticleService::buildArticleResponse)
-                    .toList();
-        }
-        return articleRepository.findAllByAuthorName(authorName, pageRequest)
-                .stream()
-                .map(ArticleService::buildArticleResponse)
-                .toList();
-    }
-
+    @Transactional
     public ArticleResponse createArticle(CreateArticleRequest request) {
-        EchoResponse echoResponse = echoClient.createEcho(EchoRequest.buildExample());
-        Author author = authorRepository.findByEmail(request.authorEmail())
-                .orElseGet(() -> createAuthor(request));
+        try {
+            EchoResponse echoResponse = echoClient.createEcho(EchoRequest.buildExample());
+            AuthorResponse authorResponse = authorService.findOrCreate(new CreateAuthorRequest(request));
+            Article article = ArticleConvertor.buildArticle(request, authorResponse, echoResponse);
+            return ArticleConvertor.buildArticleResponse(articleRepository.save(article));
+        } catch (DataIntegrityViolationException e) {
 
-        Article article = new Article();
-        article.setCreationDate(Instant.now());
-        article.setAuthorId(author.getId());
-        article.setAuthor(author);
-        article.setContent(request.content());
-        article.setLikes(echoResponse.likes());
-        return buildArticleResponse(articleRepository.save(article));
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Page<ArticleResponse> findArticles(String authorName, PageRequest pageRequest) {
+        if (authorName == null) {
+            return articleRepository.findAll(pageRequest)
+                    .map(ArticleConvertor::buildArticleResponse);
+        }
+
+        return articleRepository.findAllByAuthorName(authorName, pageRequest)
+                .map(ArticleConvertor::buildArticleResponse);
     }
 
     public ArticleResponse findArticleById(long articleId) {
         return articleRepository.findById(articleId)
-                .map(ArticleService::buildArticleResponse)
+                .map(ArticleConvertor::buildArticleResponse)
                 .orElseThrow(() -> new ArticleNotFoundException(articleId));
     }
 
     public void deleteArticle(long articleId) {
         articleRepository.deleteById(articleId);
-    }
-
-    private Author createAuthor(CreateArticleRequest request) {
-        Author author = new Author();
-        author.setName(request.authorName());
-        author.setEmail(request.authorEmail());
-        return authorRepository.save(author);
     }
 }

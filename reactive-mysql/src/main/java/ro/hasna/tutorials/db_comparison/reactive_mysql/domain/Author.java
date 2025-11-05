@@ -16,4 +16,6 @@ public class Author implements Serializable {
     private String name;
 
     private String email;
+
+    private Integer likes;
 }

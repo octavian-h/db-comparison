@@ -11,4 +11,8 @@ import lombok.Builder;
 public record CreateAuthorRequest(
         @JsonProperty @Schema(example = "William Shakespeare") @NotBlank @Size(max = 255) String name,
         @JsonProperty @Schema(example = "william@shakespeare.com") @Email @Size(max = 255) String email) {
+
+    public CreateAuthorRequest(CreateArticleRequest request) {
+        this(request.authorName(), request.authorEmail());
+    }
 }

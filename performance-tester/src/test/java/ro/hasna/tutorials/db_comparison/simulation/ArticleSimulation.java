@@ -6,13 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ro.hasna.tutorials.db_comparison.util.AppConstants;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
 import static io.gatling.javaapi.core.CoreDsl.ElFileBody;
-import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
+import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.listFeeder;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
@@ -29,9 +28,8 @@ public class ArticleSimulation extends BaseSimulation {
 
     @Override
     public PopulationBuilder buildTest() {
-        log.info("authorsCount={}", authorsCount);
-        List<Map<String, Object>> params = IntStream.range(0, authorsCount)
-                .mapToObj(i -> Map.of("authorName", (Object) ("an_" + i)))
+        List<Map<String, Object>> params = IntStream.range(0, 10000)
+                .mapToObj(i -> Map.of("authorName", (Object) ("an_" + (i % 100))))
                 .toList();
         FeederBuilder<Object> feeder = listFeeder(params).circular();
 
@@ -60,8 +58,8 @@ public class ArticleSimulation extends BaseSimulation {
                         .check(status().is(204)))
                 .exitHereIfFailed()
                 .injectOpen(
-//                        atOnceUsers(1000)
-                        constantUsersPerSec(100).during(Duration.ofSeconds(10))
+                        atOnceUsers(5000)
+//                        constantUsersPerSec(1000).during(Duration.ofSeconds(10))
                 );
 
     }

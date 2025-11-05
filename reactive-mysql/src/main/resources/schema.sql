@@ -15,6 +15,7 @@ create table authors
     id    bigint not null auto_increment,
     email varchar(255),
     name  varchar(255),
+    likes int,
     primary key (id)
 ) engine = InnoDB;
 

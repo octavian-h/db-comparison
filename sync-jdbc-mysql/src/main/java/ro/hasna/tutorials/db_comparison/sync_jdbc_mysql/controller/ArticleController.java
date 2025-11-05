@@ -3,6 +3,7 @@ package ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +19,6 @@ import ro.hasna.tutorials.db_comparison.dto.CreateArticleRequest;
 import ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.service.ArticleService;
 import ro.hasna.tutorials.db_comparison.util.AppConstants;
 
-import java.util.List;
-
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(AppConstants.ARTICLES_API_PATH)
@@ -34,10 +33,10 @@ public class ArticleController {
     }
 
     @GetMapping
-    public List<ArticleResponse> getArticles(@RequestParam(name = "page", defaultValue = "0", required = false) int pageNumber,
-                                             @RequestParam(name = "size", defaultValue = "10", required = false) int pageSize,
-                                             @RequestParam(name = "author", required = false) String authorName) {
-        return articleService.findArticles(authorName, PageRequest.of(pageNumber, pageSize));
+    public PagedModel<ArticleResponse> getArticles(@RequestParam(name = "page", defaultValue = "0", required = false) int pageNumber,
+                                                   @RequestParam(name = "size", defaultValue = "10", required = false) int pageSize,
+                                                   @RequestParam(name = "author", required = false) String authorName) {
+        return new PagedModel<>(articleService.findArticles(authorName, PageRequest.of(pageNumber, pageSize)));
     }
 
     @GetMapping("/{id}")

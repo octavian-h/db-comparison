@@ -60,44 +60,12 @@ mvn -nsu gatling:test
 
 ## Results
 
-### CRUD simulation
+### Spike testing
 
-We are going to use 100 users per second for a duration of 10 seconds.
-Each user will do 4 requests:
-
-- insert article
-- read all articles
-- read the inserted article
-- delete the article
-
-The time results are for "insert article" requests and the CPU and Heap are overall.
-I run this simulation 3 times and the results are from the last run.
-
-| module           | 75th (ms) | 99th (ms) | Max (ms) | Mean (ms) | Max CPU Usage (%) | Max Heap usage (MB) |
-|------------------|-----------|-----------|----------|-----------|-------------------|---------------------|
-| reactive-mongodb |           |           |          |           |                   |                     |
-| reactive-mysql   |           |           |          |           |                   |                     |
-| sync-jdbc-mysql  |           |           |          |           |                   |                     |
-| sync-jpa-mysql   |           |           |          |           |                   |                     |
-| sync-mongodb     |           |           |          |           |                   |                     |
-
-### Spike
-
-We are going to use 1000 users at once.
-Each user will do 4 requests:
-
-- insert article
-- read all articles
-- read the inserted article
-- delete the article
-
-The time results are for "insert article" requests and the CPU and Heap are overall.
-I run this simulation 3 times and the results are from the last run.
-
-| module           | 75th (ms) | 99th (ms) | Max (ms) | Mean (ms) | Max CPU Usage (%) | Max Heap usage (MB) | Errors (%) |
-|------------------|-----------|-----------|----------|-----------|-------------------|---------------------|------------|
-| reactive-mongodb |           |           |          |           |                   |                     |            |
-| reactive-mysql   |           |           |          |           |                   |                     |            |
-| sync-jdbc-mysql  |           |           |          |           |                   |                     |            |
-| sync-jpa-mysql   |           |           |          |           |                   |                     |            |
-| sync-mongodb     |           |           |          |           |                   |                     |            |
+|                 | OK: t < 800 ms | OK: 800 ms <= t < 1200 ms | OK: t >= 1200 ms | Failed |
+|-----------------|----------------|---------------------------|------------------|--------|
+| reactive-mongo  | 15,000         | 1,023                     | 3,977            | 0      |
+| reactive-mysql  | 14,970         | 282                       | 4,39             | 89     |
+| sync-mongo      | 9,295          | 3,123                     | 7,582            | 0      |
+| sync-jdbc-mysql | 9,317          | 579                       | 10,024           | 20     |
+| sync-jpa-mysql  | 155            | 488                       | 19,357           | 0      |

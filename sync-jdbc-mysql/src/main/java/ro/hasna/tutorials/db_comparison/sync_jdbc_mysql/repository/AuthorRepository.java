@@ -29,7 +29,7 @@ public class AuthorRepository {
     public Optional<Author> findByEmail(String authorEmail) {
         return jdbcTemplate.query("SELECT id, name, email " +
                         "FROM authors " +
-                        "WHERE name = ?",
+                        "WHERE email = ?",
                 (rs, rowNum) -> buildAuthor(rs),
                 authorEmail
         ).stream().findAny();

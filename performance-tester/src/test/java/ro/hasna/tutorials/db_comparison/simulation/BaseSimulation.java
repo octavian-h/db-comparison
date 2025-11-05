@@ -14,7 +14,6 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 
 public abstract class BaseSimulation extends Simulation {
 
-    protected final int authorsCount;
     protected final String baseUrl;
 
     @SneakyThrows
@@ -22,7 +21,6 @@ public abstract class BaseSimulation extends Simulation {
         Properties prop = new Properties();
         prop.load(BaseSimulation.class.getClassLoader()
                 .getResourceAsStream("config.properties"));
-        authorsCount = Integer.parseInt(prop.getProperty("authors-count"));
         baseUrl = prop.getProperty("base-url");
 
         HttpProtocolBuilder httpProtocol = http
@@ -31,7 +29,9 @@ public abstract class BaseSimulation extends Simulation {
 
         Assertion assertion = global().failedRequests().count().lt(1L);
 
-        setUp(buildTest()).assertions(assertion).protocols(httpProtocol);
+        setUp(buildTest())
+                .assertions(assertion)
+                .protocols(httpProtocol);
     }
 
     public abstract PopulationBuilder buildTest();

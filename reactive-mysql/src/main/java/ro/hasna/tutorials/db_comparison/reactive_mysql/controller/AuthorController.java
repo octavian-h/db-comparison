@@ -27,7 +27,7 @@ public class AuthorController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<AuthorResponse> postAuthor(@Valid @RequestBody CreateAuthorRequest request) {
-        return authorService.findOrCreate(request);
+        return authorService.findOrCreateAuthor(request);
     }
 
     @GetMapping

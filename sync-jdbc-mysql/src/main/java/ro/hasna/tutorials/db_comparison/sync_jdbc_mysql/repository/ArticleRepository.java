@@ -1,6 +1,8 @@
 package ro.hasna.tutorials.db_comparison.sync_jdbc_mysql.repository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,49 +20,48 @@ public class ArticleRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public List<Article> findAllBy(Pageable pageable) {
-        return jdbcTemplate.query("SELECT articles.id, articles.creation_date, articles.author_id, articles.content, authors.name, authors.email " +
-                        "FROM articles " +
-                        "INNER JOIN authors ON articles.author_id = authors.id " +
-                        "LIMIT ? " +
-                        "OFFSET ?",
-                (rs, rowNum) -> buildArticle(rs),
-                pageable.getPageSize(), pageable.getPageNumber()
-        );
+    public Page<Article> findAll(Pageable pageable) {
+        String sql = """
+                SELECT articles.id, articles.creation_date, articles.author_id, articles.content, authors.name, authors.email 
+                FROM articles 
+                INNER JOIN authors ON articles.author_id = authors.id 
+                LIMIT ? 
+                OFFSET ?
+                """;
+        List<Article> articles = jdbcTemplate.query(sql, (rs, rowNum) -> buildArticle(rs), pageable.getPageSize(), pageable.getPageNumber());
+        Integer total = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM articles", Integer.class);
+        return new PageImpl<>(articles, pageable, total == null ? 0 : total);
     }
 
-    public List<Article> findAllByAuthorName(String authorName, Pageable pageable) {
-
-        return jdbcTemplate.query("SELECT articles.id, articles.creation_date, articles.author_id, articles.content, articles.likes, authors.name, authors.email " +
-                        "FROM articles " +
-                        "INNER JOIN authors ON articles.author_id = authors.id " +
-                        "WHERE authors.name = ? " +
-                        "LIMIT ? " +
-                        "OFFSET ?",
-                (rs, rowNum) -> buildArticle(rs),
-                authorName, pageable.getPageSize(), pageable.getPageNumber()
-        );
+    public Page<Article> findAllByAuthorName(String authorName, Pageable pageable) {
+        String sql = """
+                SELECT articles.id, articles.creation_date, articles.author_id, articles.content, articles.likes, authors.name, authors.email 
+                FROM articles 
+                INNER JOIN authors ON articles.author_id = authors.id 
+                WHERE authors.name = ? 
+                LIMIT ? 
+                OFFSET ?
+                """;
+        List<Article> articles = jdbcTemplate.query(sql, (rs, rowNum) -> buildArticle(rs), authorName, pageable.getPageSize(), pageable.getPageNumber());
+        Integer total = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM articles INNER JOIN authors ON articles.author_id = authors.id WHERE authors.name = ?", Integer.class, authorName);
+        return new PageImpl<>(articles, pageable, total == null ? 0 : total);
     }
 
     public Optional<Article> findById(long articleId) {
-        return jdbcTemplate.query("SELECT articles.id, articles.creation_date, articles.author_id, articles.content, articles.likes, authors.name, authors.email " +
-                                "FROM articles " +
-                                "INNER JOIN authors ON articles.author_id = authors.id " +
-                                "WHERE articles.id = ?",
-                        (rs, rowNum) -> buildArticle(rs),
-                        articleId
-                )
+        String sql = """
+                SELECT articles.id, articles.creation_date, articles.author_id, articles.content, articles.likes, authors.name, authors.email 
+                FROM articles 
+                INNER JOIN authors ON articles.author_id = authors.id 
+                WHERE articles.id = ?
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> buildArticle(rs), articleId)
                 .stream()
                 .findAny();
     }
 
     public Article save(Article article) {
-        jdbcTemplate.update("INSERT INTO articles (creation_date, author_id, content, likes) VALUES (?, ?, ?, ?)",
-                java.sql.Timestamp.from(article.getCreationDate()),
-                article.getAuthorId(),
-                article.getContent(),
-                article.getLikes()
-        );
+        String sql = "INSERT INTO articles (creation_date, author_id, content, likes) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(sql, java.sql.Timestamp.from(article.getCreationDate()), article.getAuthorId(), article.getContent(), article.getLikes());
         Long generatedId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         article.setId(generatedId);
         return article;
