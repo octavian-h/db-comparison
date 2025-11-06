@@ -62,10 +62,12 @@ mvn -nsu gatling:test
 
 ### Spike testing
 
+Run the ArticleSimulation with 5000 users for 3 times and took the last results.
+
 |                 | OK: t < 800 ms | OK: 800 ms <= t < 1200 ms | OK: t >= 1200 ms | Failed |
 |-----------------|----------------|---------------------------|------------------|--------|
-| reactive-mongo  | 15,000         | 1,023                     | 3,977            | 0      |
-| reactive-mysql  | 14,970         | 282                       | 4,39             | 89     |
-| sync-mongo      | 9,295          | 3,123                     | 7,582            | 0      |
-| sync-jdbc-mysql | 9,317          | 579                       | 10,024           | 20     |
-| sync-jpa-mysql  | 155            | 488                       | 19,357           | 0      |
+| reactive-mongo  | 16,943         | 488                       | 2,569            | 0      |
+| reactive-mysql  | 14,794         | 1,179                     | 3,447            | 145    |
+| sync-mongo      | 11,368         | 3,135                     | 5,497            | 0      |
+| sync-jdbc-mysql | 9,144          | 237                       | 10,619           | 0      |
+| sync-jpa-mysql  | 968            | 890                       | 18,118           | 6      |

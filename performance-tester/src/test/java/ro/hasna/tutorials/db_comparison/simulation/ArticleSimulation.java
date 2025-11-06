@@ -1,7 +1,6 @@
 package ro.hasna.tutorials.db_comparison.simulation;
 
 import io.gatling.javaapi.core.FeederBuilder;
-import io.gatling.javaapi.core.PopulationBuilder;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ro.hasna.tutorials.db_comparison.util.AppConstants;
@@ -12,6 +11,7 @@ import java.util.stream.IntStream;
 
 import static io.gatling.javaapi.core.CoreDsl.ElFileBody;
 import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
+import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.listFeeder;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
@@ -27,13 +27,13 @@ public class ArticleSimulation extends BaseSimulation {
 
 
     @Override
-    public PopulationBuilder buildTest() {
+    public void runTest() {
         List<Map<String, Object>> params = IntStream.range(0, 10000)
                 .mapToObj(i -> Map.of("authorName", (Object) ("an_" + (i % 100))))
                 .toList();
         FeederBuilder<Object> feeder = listFeeder(params).circular();
-
-        return scenario("Test CRUD on Article API")
+//                constantUsersPerSec(1000).during(Duration.ofSeconds(10))
+        setUp(scenario("Test CRUD on Article API")
                 .feed(feeder)
                 .exec(http("Create article")
                         .post(AppConstants.ARTICLES_API_PATH)
@@ -59,8 +59,10 @@ public class ArticleSimulation extends BaseSimulation {
                 .exitHereIfFailed()
                 .injectOpen(
                         atOnceUsers(5000)
-//                        constantUsersPerSec(1000).during(Duration.ofSeconds(10))
-                );
-
+                ))
+                .assertions(
+//                        global().responseTime().max().lte(1000),
+                        global().failedRequests().percent().lt(1.0))
+                .protocols(httpProtocol);
     }
 }
