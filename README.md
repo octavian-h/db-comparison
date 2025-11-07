@@ -66,8 +66,8 @@ Run the ArticleSimulation with 5000 users for 3 times and took the last results.
 
 |                 | OK: t < 800 ms | OK: 800 ms <= t < 1200 ms | OK: t >= 1200 ms | Failed |
 |-----------------|----------------|---------------------------|------------------|--------|
-| reactive-mongo  | 16,943         | 488                       | 2,569            | 0      |
-| reactive-mysql  | 14,794         | 1,179                     | 3,447            | 145    |
+| reactive-mongo  | 17,447         | 1,310                     | 1,243            | 0      |
+| reactive-mysql  | 14,813         | 1,678                     | 2,937            | 143    |
 | sync-mongo      | 11,368         | 3,135                     | 5,497            | 0      |
-| sync-jdbc-mysql | 9,144          | 237                       | 10,619           | 0      |
+| sync-jdbc-mysql | 8,846          | 764                       | 10,250           | 35     |
 | sync-jpa-mysql  | 968            | 890                       | 18,118           | 6      |
